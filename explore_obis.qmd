@@ -1,0 +1,486 @@
+---
+title: "explore_obis"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+## Goal
+
+Explore OBIS occurrence data for ranking species by number of occurrences, spatial/temporal distribution and taxonomic importance (e.g., trophic level, extinction risk). This will facilitate a short list of species for applying initial species distribution models (SDMs).
+
+Source: * [Data access | Ocean Biodiversity Information System](https://obis.org/data/access/#)
+
+## Read OBIS parquet
+
+* [BigelowLab/fullobis](https://github.com/BigelowLab/fullobis)
+    Simple Access to the Full OBIS Dataset with R
+* [Diversity indicators using OBIS data](https://iobis.github.io/notebook-diversity-indicators/)
+
+OBIS
+
+* [8 Data Visualization - The OBIS manual](https://manual.obis.org/dataviz.html#obisindicators-calculating-visualizing-spatial-biodiversity-using-data-from-obis)
+* [api.obis.org](https://api.obis.org/)
+* [External data sources | OBIS](https://obis.org/data/externalsources/)
+
+```{r}
+# libraries ----
+librarian::shelf(
+  arrow, dplyr, 
+  BigelowLab/fullobis,
+  glue, here, mapview, readr, sf)
+
+# variables -----
+dir_data     <- "/Users/bbest/My Drive/projects/mbon-sdm/data"
+obis_prq     <- glue("{dir_data}/raw/obis.org/obis_20230726.parquet")      #  4.9 GB
+obis_csv     <- glue("{dir_data}/raw/obis.org/obis_20230726_subcols.csv")  # 16.6 GB
+obis_sum_csv <- here("data/obis_summary.csv")                              #  4.1 MB
+obis_top_csv <- here("data/obis_top.csv")                                  #      MB
+
+# obis_prq <- "/Users/bbest/Downloads/obis_20230726.parquet"
+
+# fullobis setup
+set_root(glue("{dir_data}/raw/obis.org"))
+set_useragent("http://github.com/bbest")
+
+# checks ----
+stopifnot(file.exists(obis_prq))
+```
+
+
+```{r}
+#| eval: False
+
+# fetch OBIS parquet
+# ok       <- fetch_obis()
+# obis_prq <- get_current()
+
+# open and read all or parts of the file
+x <- open_dataset(obis_prq)
+x
+# FileSystemDataset with 1 Parquet file
+# id: string
+# dataset_id: string
+# decimalLongitude: float
+# decimalLatitude: float
+# date_start: int64
+# date_mid: int64
+# date_end: int64
+# date_year: int64
+# scientificName: string
+# originalScientificName: string
+# minimumDepthInMeters: float
+# maximumDepthInMeters: float
+# depth: float
+# coordinateUncertaintyInMeters: float
+# flags: string
+# dropped: bool
+# absence: bool
+# shoredistance: string
+# bathymetry: string
+# sst: string
+# sss: string
+# marine: bool
+# brackish: bool
+# freshwater: bool
+# terrestrial: bool
+# taxonRank: string
+# AphiaID: int64
+# redlist_category: string
+# superdomain: string
+# domain: string
+# kingdom: string
+# subkingdom: string
+# infrakingdom: string
+# phylum: string
+# phylum_division: string
+# subphylum_subdivision: string
+# subphylum: string
+# infraphylum: string
+# parvphylum: string
+# gigaclass: string
+# megaclass: string
+# superclass: string
+# class: string
+# subclass: string
+# infraclass: string
+# subterclass: string
+# superorder: string
+# order: string
+# suborder: string
+# infraorder: string
+# parvorder: string
+# superfamily: string
+# family: string
+# subfamily: string
+# supertribe: string
+# tribe: string
+# subtribe: string
+# genus: string
+# subgenus: string
+# section: string
+# subsection: string
+# series: string
+# species: string
+# subspecies: string
+# natio: string
+# variety: string
+# subvariety: string
+# forma: string
+# subforma: string
+# superdomainid: int64
+# domainid: int64
+# kingdomid: int64
+# subkingdomid: int64
+# infrakingdomid: int64
+# phylumid: int64
+# phylum_divisionid: int64
+# subphylum_subdivisionid: int64
+# subphylumid: int64
+# infraphylumid: int64
+# parvphylumid: int64
+# gigaclassid: int64
+# megaclassid: int64
+# superclassid: int64
+# classid: int64
+# subclassid: int64
+# infraclassid: int64
+# subterclassid: int64
+# superorderid: int64
+# orderid: int64
+# suborderid: int64
+# infraorderid: int64
+# parvorderid: int64
+# superfamilyid: int64
+# familyid: int64
+# subfamilyid: int64
+# supertribeid: int64
+# tribeid: int64
+# subtribeid: int64
+# genusid: int64
+# subgenusid: int64
+# sectionid: int64
+# subsectionid: int64
+# seriesid: int64
+# speciesid: int64
+# subspeciesid: int64
+# natioid: int64
+# varietyid: int64
+# subvarietyid: int64
+# formaid: int64
+# subformaid: int64
+# type: string
+# modified: string
+# language: string
+# license: string
+# rightsHolder: string
+# accessRights: string
+# bibliographicCitation: string
+# references: string
+# institutionID: string
+# collectionID: string
+# datasetID: string
+# institutionCode: string
+# collectionCode: string
+# datasetName: string
+# ownerInstitutionCode: string
+# basisOfRecord: string
+# informationWithheld: string
+# dataGeneralizations: string
+# dynamicProperties: string
+# materialSampleID: string
+# occurrenceID: string
+# catalogNumber: string
+# occurrenceRemarks: string
+# recordNumber: string
+# recordedBy: string
+# recordedByID: string
+# individualCount: string
+# organismQuantity: string
+# organismQuantityType: string
+# sex: string
+# lifeStage: string
+# reproductiveCondition: string
+# behavior: string
+# establishmentMeans: string
+# occurrenceStatus: string
+# preparations: string
+# disposition: string
+# otherCatalogNumbers: string
+# associatedMedia: string
+# associatedReferences: string
+# associatedSequences: string
+# associatedTaxa: string
+# organismID: string
+# organismName: string
+# organismScope: string
+# associatedOccurrences: string
+# associatedOrganisms: string
+# previousIdentifications: string
+# organismRemarks: string
+# eventID: string
+# parentEventID: string
+# samplingProtocol: string
+# sampleSizeValue: string
+# sampleSizeUnit: string
+# samplingEffort: string
+# eventDate: string
+# eventTime: string
+# startDayOfYear: string
+# endDayOfYear: string
+# year: string
+# month: string
+# day: string
+# verbatimEventDate: string
+# habitat: string
+# fieldNumber: string
+# fieldNotes: string
+# eventRemarks: string
+# locationID: string
+# higherGeographyID: string
+# higherGeography: string
+# continent: string
+# waterBody: string
+# islandGroup: string
+# island: string
+# country: string
+# countryCode: string
+# stateProvince: string
+# county: string
+# municipality: string
+# locality: string
+# verbatimLocality: string
+# verbatimElevation: string
+# minimumElevationInMeters: string
+# maximumElevationInMeters: string
+# verbatimDepth: string
+# minimumDistanceAboveSurfaceInMeters: string
+# maximumDistanceAboveSurfaceInMeters: string
+# locationAccordingTo: string
+# locationRemarks: string
+# verbatimCoordinates: string
+# verbatimLatitude: string
+# verbatimLongitude: string
+# verbatimCoordinateSystem: string
+# verbatimSRS: string
+# geodeticDatum: string
+# coordinatePrecision: string
+# pointRadiusSpatialFit: string
+# footprintWKT: string
+# footprintSRS: string
+# footprintSpatialFit: string
+# georeferencedBy: string
+# georeferencedDate: string
+# georeferenceProtocol: string
+# georeferenceSources: string
+# georeferenceVerificationStatus: string
+# georeferenceRemarks: string
+# geologicalContextID: string
+# earliestEonOrLowestEonothem: string
+# latestEonOrHighestEonothem: string
+# earliestEraOrLowestErathem: string
+# latestEraOrHighestErathem: string
+# earliestPeriodOrLowestSystem: string
+# latestPeriodOrHighestSystem: string
+# earliestEpochOrLowestSeries: string
+# latestEpochOrHighestSeries: string
+# earliestAgeOrLowestStage: string
+# latestAgeOrHighestStage: string
+# lowestBiostratigraphicZone: string
+# highestBiostratigraphicZone: string
+# lithostratigraphicTerms: string
+# group: string
+# formation: string
+# member: string
+# bed: string
+# identificationID: string
+# identifiedBy: string
+# identifiedByID: string
+# dateIdentified: string
+# identificationReferences: string
+# identificationRemarks: string
+# identificationQualifier: string
+# identificationVerificationStatus: string
+# typeStatus: string
+# taxonID: string
+# scientificNameID: string
+# acceptedNameUsageID: string
+# parentNameUsageID: string
+# originalNameUsageID: string
+# nameAccordingToID: string
+# namePublishedInID: string
+# taxonConceptID: string
+# acceptedNameUsage: string
+# parentNameUsage: string
+# originalNameUsage: string
+# nameAccordingTo: string
+# namePublishedIn: string
+# namePublishedInYear: string
+# higherClassification: string
+# specificEpithet: string
+# infraspecificEpithet: string
+# verbatimTaxonRank: string
+# scientificNameAuthorship: string
+# vernacularName: string
+# nomenclaturalCode: string
+# taxonomicStatus: string
+# nomenclaturalStatus: string
+# taxonRemarks: string
+
+# columns to keep
+col_keep = c(
+  "id",
+  "phylum",
+  "class",
+  "scientificName",
+  "AphiaID",
+  "date_year",
+  "date_mid",
+  "eventDate",
+  "decimalLongitude",
+  "decimalLatitude",
+  "depth",
+  "individualCount",
+  "flags",
+  "dropped",
+  "absence")
+system.time({
+  y <- x |> 
+    select(all_of(col_keep)) |> 
+    collect() |> 
+    as_tibble() |> 
+    filter(!is.na(individualCount), !is.na(date_year))
+})
+# before extra columns (class, AphiaID, date_mid, eventDate, depth, flags, dropped, absence):
+#      user   system  elapsed 
+#   246.842 1052.350 1777.397   # /60    = 29.6 min
+# after:
+#      user    system   elapsed 
+#   719.556  7455.860 13976.147 # /60/60 = 3.9  hrs
+
+system.time({
+  write_csv(y, obis_csv)
+})
+#   user  system elapsed                                                                                                                                             
+# 37.480  14.787  16.088
+
+y
+# before extra columns (class, AphiaID, date_mid, eventDate, depth, flags, dropped, absence):
+#   A tibble: 27,101,348 × 7
+#      id                decimalLongitude decimalLatitude scientificName phylum date_year
+#      <chr>                        <dbl>           <dbl> <chr>          <chr>      <int>
+#    1 ab2b3d73-0437-42…           -177.            0.811 Pycnochromis … Chord…      2006
+#    2 d0b85b79-3763-47…           -177.            0.811 Pycnochromis … Chord…      2006
+#    3 1705ac8c-4903-4b…           -177.            0.811 Pycnochromis … Chord…      2006
+#    4 7960289e-ddaf-47…            132.            2.92  Gymnothorax f… Chord…      2008
+#    5 8e621c79-a0fd-4a…             10.5          56.9   Dipolydora co… Annel…      2004
+#    6 f959831d-2189-49…             10.5          56.9   Dipolydora co… Annel…      2004
+#    7 b28e4b42-74fe-4a…           -177.            0.811 Pycnochromis … Chord…      2006
+#    8 008d1ba6-a337-4d…           -177.            0.811 Pycnochromis … Chord…      2006
+#    9 3e37c8c0-357a-49…           -177.            0.811 Pycnochromis … Chord…      2006
+#   10 28f7e5e6-9fe8-4e…           -177.            0.790 Monotaxis gra… Chord…      2006
+#   ℹ 27,101,338 more rows
+#   ℹ 1 more variable: individualCount <chr>
+# after:
+#   A tibble: 27,101,348 × 15
+#      id         phylum class scientificName AphiaID date_year date_mid eventDate decimalLongitude decimalLatitude depth individualCount flags
+#      <chr>      <chr>  <chr> <chr>            <int>     <int>  <int64> <chr>                <dbl>           <dbl> <dbl> <chr>           <chr>
+#    1 ab2b3d73-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   7               {}   
+#    2 d0b85b79-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   4               {}   
+#    3 1705ac8c-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   5               {}   
+#    4 7960289e-… Chord… Tele… Gymnothorax f…  217499      2008     1e12 2008-09-…            132.            2.92   NA   1               {NO_…
+#    5 8e621c79-… Annel… Poly… Dipolydora co…  131117      2004     1e12 2004-04-…             10.5          56.9    11.6 1.0             {}   
+#    6 f959831d-… Annel… Poly… Dipolydora co…  131117      2004     1e12 2004-04-…             10.5          56.9    11.9 1.0             {}   
+#    7 b28e4b42-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   20              {}   
+#    8 008d1ba6-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   34              {}   
+#    9 3e37c8c0-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   20              {}   
+#   10 28f7e5e6-… Chord… Tele… Monotaxis gra…  218584      2006     1e12 2006-01-…           -177.            0.790  14   1               {}   
+#   ℹ 27,101,338 more rows
+#   ℹ 2 more variables: dropped <lgl>, absence <lgl>
+
+system.time({
+  y_sum <- y |> 
+    # TODO: get Kingdom
+    group_by(phylum, class, scientificName, AphiaID) |>
+    summarize(
+      year_min = min(date_year),
+      n_years  = n_distinct(date_year),
+      year_max = max(date_year),
+      n_obs    = n(),
+      n_indiv  = sum(as.numeric(individualCount), na.rm=T),
+      .groups = "drop") |> 
+  arrange(desc(n_obs), phylum, class, scientificName, AphiaID)
+})
+#    user  system elapsed 
+#   3.792   0.960   5.366
+  
+table(is.na(y_sum$n_indiv))
+# before na.rm=T:
+#    FALSE  TRUE 
+#   88,999    74
+# after na.rm=T:
+#    FALSE 
+#   89,073
+#   89,216
+y_sum
+# A tibble: 89,073 × 7
+#    phylum     scientificName           year_min n_years year_max  n_obs     n_indiv
+#    <chr>      <chr>                       <int>   <int>    <int>  <int>       <dbl>
+#  1 Chordata   Fulmarus glacialis           1938      56     2021 892182    3851813 
+#  2 Chordata   Uria aalge                   1966      54     2021 625780    1603709 
+#  3 Chordata   Gadus morhua                 1782     102     2020 594939   35768843.
+#  4 Chordata   Merlangius merlangus         1921      65     2021 493998  740174517.
+#  5 Chordata   Melanogrammus aeglefinus     1913      72     2013 466065  678710462.
+#  6 Chordata   Morus bassanus               1965      56     2021 461615     954192 
+#  7 Chordata   Rissa tridactyla             1965      56     2021 428197    1885176 
+#  8 Chordata   Clupea harengus              1757     154     2019 396647 1938019751.
+#  9 Arthropoda Homarus americanus           1874      65     2014 384192    3485011.
+# 10 Chordata   Limanda limanda              1927      73     2021 345898  251012411.
+# ℹ 89,063 more rows
+
+n_distinct(y_sum$phylum)
+# 61
+
+n_distinct(y_sum$class)
+# 174
+
+write_csv(y_sum, obis_sum_csv)
+```
+
+
+```{r}
+d_o <- read_csv(obis_sum_csv)
+dim(d_o)
+# 89216     9
+
+d_o_top <- d_o |> 
+  arrange(desc(n_obs), phylum, class) |>
+  group_by(phylum, class) |>
+  summarize(
+    scientificName = first(scientificName), 
+    AphiaID        = first(AphiaID), 
+    year_min       = first(year_min), 
+    n_years        = first(n_years), 
+    year_max       = first(year_max), 
+    n_obs          = first(n_obs), 
+    n_indiv        = first(n_indiv), 
+    .groups = "drop")
+dim(d_o_top)
+# 233   9
+write_csv(d_o_top, obis_top_csv)
+
+DT::datatable(d_o_top)
+```
+
+
+
+* [Fulmarus glacialis | WoRMS](https://marinespecies.org/aphia.php?p=taxdetails&id=137195)
+  - Class: Aves
+  - Vernaculars: northern fulmar, fulmar
+* [Melanogrammus aeglefinus | WoRMS](https://marinespecies.org/aphia.php?p=taxdetails&id=126437)
+  - Class: Actinopterygii
+  - Vernaculars: haddock
+* [Homarus americanus | WoRMS](https://marinespecies.org/aphia.php?p=taxdetails&id=156134)
+  - Class: Malacostraca
+  - Vernaculars: northern lobster, maine lobster, lobster, American lobster, American clawed lobster
+    
