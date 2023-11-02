@@ -26,450 +26,556 @@ OBIS
 ```{r}
 # libraries ----
 librarian::shelf(
-  arrow, dplyr, 
-  BigelowLab/fullobis,
+  arrow, dplyr, DT, 
+  # BigelowLab/fullobis,
   glue, here, mapview, readr, sf)
 
 # variables -----
-dir_data     <- "/Users/bbest/My Drive/projects/mbon-sdm/data"
-obis_prq     <- glue("{dir_data}/raw/obis.org/obis_20230726.parquet")      #  4.9 GB
-obis_csv     <- glue("{dir_data}/raw/obis.org/obis_20230726_subcols.csv")  # 16.6 GB
-obis_sum_csv <- here("data/obis_summary.csv")                              #  4.1 MB
-obis_top_csv <- here("data/obis_top.csv")                                  #      MB
-
-# obis_prq <- "/Users/bbest/Downloads/obis_20230726.parquet"
-
-# fullobis setup
-set_root(glue("{dir_data}/raw/obis.org"))
-set_useragent("http://github.com/bbest")
-
-# checks ----
-stopifnot(file.exists(obis_prq))
+dir_data       <- "/Users/bbest/My Drive/projects/mbon-sdm/data"
+obis_prq       <- glue("{dir_data}/raw/obis.org/obis_20230726.parquet")      #  4.9 GB
+obis_csv       <- glue("{dir_data}/raw/obis.org/obis_20230726_subcols.csv")  # 16.6 GB
+obis_sum_csv   <- here("data/obis_summary.csv")                              # 12.4 MB
+obis_topsp_csv <- here("data/obis_top-species.csv")                          # 22   KB
 ```
 
+[marinebon/sdm-explore](https://github.com/marinebon/sdm-explore/): `data/`
+
+* [obis\_summary.csv](https://github.com/marinebon/sdm-explore/blob/main/data/obis_summary.csv)
+* [obis\_top-species.csv ](https://github.com/marinebon/sdm-explore/blob/main/data/obis_top-species.csv)
 
 ```{r}
-#| eval: False
-
 # fetch OBIS parquet
 # ok       <- fetch_obis()
 # obis_prq <- get_current()
 
-# open and read all or parts of the file
-x <- open_dataset(obis_prq)
-x
-# FileSystemDataset with 1 Parquet file
-# id: string
-# dataset_id: string
-# decimalLongitude: float
-# decimalLatitude: float
-# date_start: int64
-# date_mid: int64
-# date_end: int64
-# date_year: int64
-# scientificName: string
-# originalScientificName: string
-# minimumDepthInMeters: float
-# maximumDepthInMeters: float
-# depth: float
-# coordinateUncertaintyInMeters: float
-# flags: string
-# dropped: bool
-# absence: bool
-# shoredistance: string
-# bathymetry: string
-# sst: string
-# sss: string
-# marine: bool
-# brackish: bool
-# freshwater: bool
-# terrestrial: bool
-# taxonRank: string
-# AphiaID: int64
-# redlist_category: string
-# superdomain: string
-# domain: string
-# kingdom: string
-# subkingdom: string
-# infrakingdom: string
-# phylum: string
-# phylum_division: string
-# subphylum_subdivision: string
-# subphylum: string
-# infraphylum: string
-# parvphylum: string
-# gigaclass: string
-# megaclass: string
-# superclass: string
-# class: string
-# subclass: string
-# infraclass: string
-# subterclass: string
-# superorder: string
-# order: string
-# suborder: string
-# infraorder: string
-# parvorder: string
-# superfamily: string
-# family: string
-# subfamily: string
-# supertribe: string
-# tribe: string
-# subtribe: string
-# genus: string
-# subgenus: string
-# section: string
-# subsection: string
-# series: string
-# species: string
-# subspecies: string
-# natio: string
-# variety: string
-# subvariety: string
-# forma: string
-# subforma: string
-# superdomainid: int64
-# domainid: int64
-# kingdomid: int64
-# subkingdomid: int64
-# infrakingdomid: int64
-# phylumid: int64
-# phylum_divisionid: int64
-# subphylum_subdivisionid: int64
-# subphylumid: int64
-# infraphylumid: int64
-# parvphylumid: int64
-# gigaclassid: int64
-# megaclassid: int64
-# superclassid: int64
-# classid: int64
-# subclassid: int64
-# infraclassid: int64
-# subterclassid: int64
-# superorderid: int64
-# orderid: int64
-# suborderid: int64
-# infraorderid: int64
-# parvorderid: int64
-# superfamilyid: int64
-# familyid: int64
-# subfamilyid: int64
-# supertribeid: int64
-# tribeid: int64
-# subtribeid: int64
-# genusid: int64
-# subgenusid: int64
-# sectionid: int64
-# subsectionid: int64
-# seriesid: int64
-# speciesid: int64
-# subspeciesid: int64
-# natioid: int64
-# varietyid: int64
-# subvarietyid: int64
-# formaid: int64
-# subformaid: int64
-# type: string
-# modified: string
-# language: string
-# license: string
-# rightsHolder: string
-# accessRights: string
-# bibliographicCitation: string
-# references: string
-# institutionID: string
-# collectionID: string
-# datasetID: string
-# institutionCode: string
-# collectionCode: string
-# datasetName: string
-# ownerInstitutionCode: string
-# basisOfRecord: string
-# informationWithheld: string
-# dataGeneralizations: string
-# dynamicProperties: string
-# materialSampleID: string
-# occurrenceID: string
-# catalogNumber: string
-# occurrenceRemarks: string
-# recordNumber: string
-# recordedBy: string
-# recordedByID: string
-# individualCount: string
-# organismQuantity: string
-# organismQuantityType: string
-# sex: string
-# lifeStage: string
-# reproductiveCondition: string
-# behavior: string
-# establishmentMeans: string
-# occurrenceStatus: string
-# preparations: string
-# disposition: string
-# otherCatalogNumbers: string
-# associatedMedia: string
-# associatedReferences: string
-# associatedSequences: string
-# associatedTaxa: string
-# organismID: string
-# organismName: string
-# organismScope: string
-# associatedOccurrences: string
-# associatedOrganisms: string
-# previousIdentifications: string
-# organismRemarks: string
-# eventID: string
-# parentEventID: string
-# samplingProtocol: string
-# sampleSizeValue: string
-# sampleSizeUnit: string
-# samplingEffort: string
-# eventDate: string
-# eventTime: string
-# startDayOfYear: string
-# endDayOfYear: string
-# year: string
-# month: string
-# day: string
-# verbatimEventDate: string
-# habitat: string
-# fieldNumber: string
-# fieldNotes: string
-# eventRemarks: string
-# locationID: string
-# higherGeographyID: string
-# higherGeography: string
-# continent: string
-# waterBody: string
-# islandGroup: string
-# island: string
-# country: string
-# countryCode: string
-# stateProvince: string
-# county: string
-# municipality: string
-# locality: string
-# verbatimLocality: string
-# verbatimElevation: string
-# minimumElevationInMeters: string
-# maximumElevationInMeters: string
-# verbatimDepth: string
-# minimumDistanceAboveSurfaceInMeters: string
-# maximumDistanceAboveSurfaceInMeters: string
-# locationAccordingTo: string
-# locationRemarks: string
-# verbatimCoordinates: string
-# verbatimLatitude: string
-# verbatimLongitude: string
-# verbatimCoordinateSystem: string
-# verbatimSRS: string
-# geodeticDatum: string
-# coordinatePrecision: string
-# pointRadiusSpatialFit: string
-# footprintWKT: string
-# footprintSRS: string
-# footprintSpatialFit: string
-# georeferencedBy: string
-# georeferencedDate: string
-# georeferenceProtocol: string
-# georeferenceSources: string
-# georeferenceVerificationStatus: string
-# georeferenceRemarks: string
-# geologicalContextID: string
-# earliestEonOrLowestEonothem: string
-# latestEonOrHighestEonothem: string
-# earliestEraOrLowestErathem: string
-# latestEraOrHighestErathem: string
-# earliestPeriodOrLowestSystem: string
-# latestPeriodOrHighestSystem: string
-# earliestEpochOrLowestSeries: string
-# latestEpochOrHighestSeries: string
-# earliestAgeOrLowestStage: string
-# latestAgeOrHighestStage: string
-# lowestBiostratigraphicZone: string
-# highestBiostratigraphicZone: string
-# lithostratigraphicTerms: string
-# group: string
-# formation: string
-# member: string
-# bed: string
-# identificationID: string
-# identifiedBy: string
-# identifiedByID: string
-# dateIdentified: string
-# identificationReferences: string
-# identificationRemarks: string
-# identificationQualifier: string
-# identificationVerificationStatus: string
-# typeStatus: string
-# taxonID: string
-# scientificNameID: string
-# acceptedNameUsageID: string
-# parentNameUsageID: string
-# originalNameUsageID: string
-# nameAccordingToID: string
-# namePublishedInID: string
-# taxonConceptID: string
-# acceptedNameUsage: string
-# parentNameUsage: string
-# originalNameUsage: string
-# nameAccordingTo: string
-# namePublishedIn: string
-# namePublishedInYear: string
-# higherClassification: string
-# specificEpithet: string
-# infraspecificEpithet: string
-# verbatimTaxonRank: string
-# scientificNameAuthorship: string
-# vernacularName: string
-# nomenclaturalCode: string
-# taxonomicStatus: string
-# nomenclaturalStatus: string
-# taxonRemarks: string
+if (!file.exists(obis_csv)) {
 
-# columns to keep
-col_keep = c(
-  "id",
-  "phylum",
-  "class",
-  "scientificName",
-  "AphiaID",
-  "date_year",
-  "date_mid",
-  "eventDate",
-  "decimalLongitude",
-  "decimalLatitude",
-  "depth",
-  "individualCount",
-  "flags",
-  "dropped",
-  "absence")
-system.time({
-  y <- x |> 
-    select(all_of(col_keep)) |> 
-    collect() |> 
-    as_tibble() |> 
-    filter(!is.na(individualCount), !is.na(date_year))
-})
-# before extra columns (class, AphiaID, date_mid, eventDate, depth, flags, dropped, absence):
-#      user   system  elapsed 
-#   246.842 1052.350 1777.397   # /60    = 29.6 min
-# after:
-#      user    system   elapsed 
-#   719.556  7455.860 13976.147 # /60/60 = 3.9  hrs
+  # fullobis
+  # fullobis::set_root(glue("{dir_data}/raw/obis.org"))
+  # fullobis::set_useragent("http://github.com/bbest")
+  
+  stopifnot(file.exists(obis_prq))
+  # open and read all or parts of the file
+  x <- open_dataset(obis_prq)
+  
+  # x
+  # FileSystemDataset with 1 Parquet file
+  # id: string
+  # dataset_id: string
+  # decimalLongitude: float
+  # decimalLatitude: float
+  # date_start: int64
+  # date_mid: int64
+  # date_end: int64
+  # date_year: int64
+  # scientificName: string
+  # originalScientificName: string
+  # minimumDepthInMeters: float
+  # maximumDepthInMeters: float
+  # depth: float
+  # coordinateUncertaintyInMeters: float
+  # flags: string
+  # dropped: bool
+  # absence: bool
+  # shoredistance: string
+  # bathymetry: string
+  # sst: string
+  # sss: string
+  # marine: bool
+  # brackish: bool
+  # freshwater: bool
+  # terrestrial: bool
+  # taxonRank: string
+  # AphiaID: int64
+  # redlist_category: string
+  # superdomain: string
+  # domain: string
+  # kingdom: string
+  # subkingdom: string
+  # infrakingdom: string
+  # phylum: string
+  # phylum_division: string
+  # subphylum_subdivision: string
+  # subphylum: string
+  # infraphylum: string
+  # parvphylum: string
+  # gigaclass: string
+  # megaclass: string
+  # superclass: string
+  # class: string
+  # subclass: string
+  # infraclass: string
+  # subterclass: string
+  # superorder: string
+  # order: string
+  # suborder: string
+  # infraorder: string
+  # parvorder: string
+  # superfamily: string
+  # family: string
+  # subfamily: string
+  # supertribe: string
+  # tribe: string
+  # subtribe: string
+  # genus: string
+  # subgenus: string
+  # section: string
+  # subsection: string
+  # series: string
+  # species: string
+  # subspecies: string
+  # natio: string
+  # variety: string
+  # subvariety: string
+  # forma: string
+  # subforma: string
+  # superdomainid: int64
+  # domainid: int64
+  # kingdomid: int64
+  # subkingdomid: int64
+  # infrakingdomid: int64
+  # phylumid: int64
+  # phylum_divisionid: int64
+  # subphylum_subdivisionid: int64
+  # subphylumid: int64
+  # infraphylumid: int64
+  # parvphylumid: int64
+  # gigaclassid: int64
+  # megaclassid: int64
+  # superclassid: int64
+  # classid: int64
+  # subclassid: int64
+  # infraclassid: int64
+  # subterclassid: int64
+  # superorderid: int64
+  # orderid: int64
+  # suborderid: int64
+  # infraorderid: int64
+  # parvorderid: int64
+  # superfamilyid: int64
+  # familyid: int64
+  # subfamilyid: int64
+  # supertribeid: int64
+  # tribeid: int64
+  # subtribeid: int64
+  # genusid: int64
+  # subgenusid: int64
+  # sectionid: int64
+  # subsectionid: int64
+  # seriesid: int64
+  # speciesid: int64
+  # subspeciesid: int64
+  # natioid: int64
+  # varietyid: int64
+  # subvarietyid: int64
+  # formaid: int64
+  # subformaid: int64
+  # type: string
+  # modified: string
+  # language: string
+  # license: string
+  # rightsHolder: string
+  # accessRights: string
+  # bibliographicCitation: string
+  # references: string
+  # institutionID: string
+  # collectionID: string
+  # datasetID: string
+  # institutionCode: string
+  # collectionCode: string
+  # datasetName: string
+  # ownerInstitutionCode: string
+  # basisOfRecord: string
+  # informationWithheld: string
+  # dataGeneralizations: string
+  # dynamicProperties: string
+  # materialSampleID: string
+  # occurrenceID: string
+  # catalogNumber: string
+  # occurrenceRemarks: string
+  # recordNumber: string
+  # recordedBy: string
+  # recordedByID: string
+  # individualCount: string
+  # organismQuantity: string
+  # organismQuantityType: string
+  # sex: string
+  # lifeStage: string
+  # reproductiveCondition: string
+  # behavior: string
+  # establishmentMeans: string
+  # occurrenceStatus: string
+  # preparations: string
+  # disposition: string
+  # otherCatalogNumbers: string
+  # associatedMedia: string
+  # associatedReferences: string
+  # associatedSequences: string
+  # associatedTaxa: string
+  # organismID: string
+  # organismName: string
+  # organismScope: string
+  # associatedOccurrences: string
+  # associatedOrganisms: string
+  # previousIdentifications: string
+  # organismRemarks: string
+  # eventID: string
+  # parentEventID: string
+  # samplingProtocol: string
+  # sampleSizeValue: string
+  # sampleSizeUnit: string
+  # samplingEffort: string
+  # eventDate: string
+  # eventTime: string
+  # startDayOfYear: string
+  # endDayOfYear: string
+  # year: string
+  # month: string
+  # day: string
+  # verbatimEventDate: string
+  # habitat: string
+  # fieldNumber: string
+  # fieldNotes: string
+  # eventRemarks: string
+  # locationID: string
+  # higherGeographyID: string
+  # higherGeography: string
+  # continent: string
+  # waterBody: string
+  # islandGroup: string
+  # island: string
+  # country: string
+  # countryCode: string
+  # stateProvince: string
+  # county: string
+  # municipality: string
+  # locality: string
+  # verbatimLocality: string
+  # verbatimElevation: string
+  # minimumElevationInMeters: string
+  # maximumElevationInMeters: string
+  # verbatimDepth: string
+  # minimumDistanceAboveSurfaceInMeters: string
+  # maximumDistanceAboveSurfaceInMeters: string
+  # locationAccordingTo: string
+  # locationRemarks: string
+  # verbatimCoordinates: string
+  # verbatimLatitude: string
+  # verbatimLongitude: string
+  # verbatimCoordinateSystem: string
+  # verbatimSRS: string
+  # geodeticDatum: string
+  # coordinatePrecision: string
+  # pointRadiusSpatialFit: string
+  # footprintWKT: string
+  # footprintSRS: string
+  # footprintSpatialFit: string
+  # georeferencedBy: string
+  # georeferencedDate: string
+  # georeferenceProtocol: string
+  # georeferenceSources: string
+  # georeferenceVerificationStatus: string
+  # georeferenceRemarks: string
+  # geologicalContextID: string
+  # earliestEonOrLowestEonothem: string
+  # latestEonOrHighestEonothem: string
+  # earliestEraOrLowestErathem: string
+  # latestEraOrHighestErathem: string
+  # earliestPeriodOrLowestSystem: string
+  # latestPeriodOrHighestSystem: string
+  # earliestEpochOrLowestSeries: string
+  # latestEpochOrHighestSeries: string
+  # earliestAgeOrLowestStage: string
+  # latestAgeOrHighestStage: string
+  # lowestBiostratigraphicZone: string
+  # highestBiostratigraphicZone: string
+  # lithostratigraphicTerms: string
+  # group: string
+  # formation: string
+  # member: string
+  # bed: string
+  # identificationID: string
+  # identifiedBy: string
+  # identifiedByID: string
+  # dateIdentified: string
+  # identificationReferences: string
+  # identificationRemarks: string
+  # identificationQualifier: string
+  # identificationVerificationStatus: string
+  # typeStatus: string
+  # taxonID: string
+  # scientificNameID: string
+  # acceptedNameUsageID: string
+  # parentNameUsageID: string
+  # originalNameUsageID: string
+  # nameAccordingToID: string
+  # namePublishedInID: string
+  # taxonConceptID: string
+  # acceptedNameUsage: string
+  # parentNameUsage: string
+  # originalNameUsage: string
+  # nameAccordingTo: string
+  # namePublishedIn: string
+  # namePublishedInYear: string
+  # higherClassification: string
+  # specificEpithet: string
+  # infraspecificEpithet: string
+  # verbatimTaxonRank: string
+  # scientificNameAuthorship: string
+  # vernacularName: string
+  # nomenclaturalCode: string
+  # taxonomicStatus: string
+  # nomenclaturalStatus: string
+  # taxonRemarks: string
+  
+  # columns to keep
+  col_keep = c(
+    "id",
+    "phylum",
+    "class",
+    "taxonRank",
+    "scientificName",
+    "AphiaID",
+    "date_mid",
+    "decimalLongitude",
+    "decimalLatitude",
+    "depth",
+    "individualCount",
+    "flags")
+  system.time({
+    # return only observations with valid coordinates and year
+    o <- x |> 
+      filter(
+        !is.na(date_year),
+        !is.na(decimalLongitude),
+        !is.na(decimalLatitude)) |> 
+      select(all_of(col_keep)) |> 
+      collect()
+  })
+  # before extra columns (class, AphiaID, date_mid, eventDate, depth, flags, dropped, absence):
+  #      user   system  elapsed 
+  #   246.842 1052.350 1777.397   # /60    = 29.6 min
+  # after:
+  #      user    system   elapsed 
+  #   719.556  7455.860 13976.147 # /60/60 = 3.9  hrs
+  # after date_mid:
+  #  TODO: enter time
+  
+  # o
+  # TODO: paste tibble first 10 rows output with column type
+  
+  # problems(o)
+  #   individualCount: character like "1500 ?", "~40", ">50", "1 or 2"
+  #
+  # So these fields aren't helpful: absence, dropped
+  #   table(y$absence, useNA = "ifany") # <lgl>
+  #        FALSE
+  #     27101348
+  #   table(y$dropped, useNA = "ifany") # <lgl>
+  #        FALSE
+  #     27101348
+  # 
+  #   table(y$flags, useNA = "ifany")   # <chr>
+  #                                                                             {} 
+  #                                                                       14762438 
+  #                                                   {DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                         268866 
+  #                                                           {DEPTH_EXCEEDS_BATH} 
+  #                                                                         298093 
+  #                                                  {DEPTH_OUT_OF_RANGE,NO_DEPTH} 
+  #                                                                             63 
+  #                                     {MARINE_UNSURE,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                            288 
+  #                                             {MARINE_UNSURE,DEPTH_EXCEEDS_BATH} 
+  #                                                                            108 
+  #                                          {MARINE_UNSURE,MIN_DEPTH_EXCEEDS_MAX} 
+  #                                                                              1 
+  #                                               {MARINE_UNSURE,NO_DEPTH,ON_LAND} 
+  #                                                                           6686 
+  #                                                       {MARINE_UNSURE,NO_DEPTH} 
+  #                                                                          35799 
+  #                                                        {MARINE_UNSURE,ON_LAND} 
+  #                                                                            617 
+  #                                                                {MARINE_UNSURE} 
+  #                                                                          15286 
+  #                             {MIN_DEPTH_EXCEEDS_MAX,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                            189 
+  #                                     {MIN_DEPTH_EXCEEDS_MAX,DEPTH_EXCEEDS_BATH} 
+  #                                                                           1116 
+  #                                                {MIN_DEPTH_EXCEEDS_MAX,ON_LAND} 
+  #                                                                            150 
+  #                                                        {MIN_DEPTH_EXCEEDS_MAX} 
+  #                                                                          17719 
+  #                                  {NO_ACCEPTED_NAME,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                            236 
+  #                                          {NO_ACCEPTED_NAME,DEPTH_EXCEEDS_BATH} 
+  #                                                                            648 
+  #                    {NO_ACCEPTED_NAME,MARINE_UNSURE,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                              8 
+  #                            {NO_ACCEPTED_NAME,MARINE_UNSURE,DEPTH_EXCEEDS_BATH} 
+  #                                                                             16 
+  #                              {NO_ACCEPTED_NAME,MARINE_UNSURE,NO_DEPTH,ON_LAND} 
+  #                                                                             61 
+  #                                      {NO_ACCEPTED_NAME,MARINE_UNSURE,NO_DEPTH} 
+  #                                                                           1852 
+  #                                       {NO_ACCEPTED_NAME,MARINE_UNSURE,ON_LAND} 
+  #                                                                             12 
+  #                                               {NO_ACCEPTED_NAME,MARINE_UNSURE} 
+  #                                                                          13404 
+  #            {NO_ACCEPTED_NAME,MIN_DEPTH_EXCEEDS_MAX,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                              1 
+  #                               {NO_ACCEPTED_NAME,MIN_DEPTH_EXCEEDS_MAX,ON_LAND} 
+  #                                                                              1 
+  #                                       {NO_ACCEPTED_NAME,MIN_DEPTH_EXCEEDS_MAX} 
+  #                                                                              2 
+  #                                            {NO_ACCEPTED_NAME,NO_DEPTH,ON_LAND} 
+  #                                                                            411 
+  #                                                    {NO_ACCEPTED_NAME,NO_DEPTH} 
+  #                                                                          15646 
+  #                                                     {NO_ACCEPTED_NAME,ON_LAND} 
+  #                                                                            810 
+  #                                                             {NO_ACCEPTED_NAME} 
+  #                                                                          84670 
+  #                                                             {NO_DEPTH,ON_LAND} 
+  #                                                                         826034 
+  #                                                                     {NO_DEPTH} 
+  #                                                                       10540391 
+  #                                                                      {ON_LAND} 
+  #                                                                         177481 
+  #                         {SCIENTIFICNAMEID_EXTERNAL,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                          13693 
+  #                                 {SCIENTIFICNAMEID_EXTERNAL,DEPTH_EXCEEDS_BATH} 
+  #                                                                             58 
+  #                     {SCIENTIFICNAMEID_EXTERNAL,NO_ACCEPTED_NAME,MARINE_UNSURE} 
+  #                                                                              1 
+  #                                   {SCIENTIFICNAMEID_EXTERNAL,NO_DEPTH,ON_LAND} 
+  #                                                                              6 
+  #                                           {SCIENTIFICNAMEID_EXTERNAL,NO_DEPTH} 
+  #                                                                             20 
+  #                                            {SCIENTIFICNAMEID_EXTERNAL,ON_LAND} 
+  #                                                                              6 
+  #                                                    {SCIENTIFICNAMEID_EXTERNAL} 
+  #                                                                            251 
+  #                       {WORMS_ANNOTATION_RESOLVABLE_AUTHORITY,NO_DEPTH,ON_LAND} 
+  #                                                                             43 
+  #                                {WORMS_ANNOTATION_RESOLVABLE_AUTHORITY,ON_LAND} 
+  #                                                                             94 
+  #                                        {WORMS_ANNOTATION_RESOLVABLE_AUTHORITY} 
+  #                                                                            214 
+  #                          {WORMS_ANNOTATION_RESOLVABLE_LOSS,DEPTH_EXCEEDS_BATH} 
+  #                                                                              1 
+  #              {WORMS_ANNOTATION_RESOLVABLE_LOSS,NO_ACCEPTED_NAME,MARINE_UNSURE} 
+  #                                                                            262 
+  #                   {WORMS_ANNOTATION_RESOLVABLE_LOSS,NO_ACCEPTED_NAME,NO_DEPTH} 
+  #                                                                             15 
+  #                            {WORMS_ANNOTATION_RESOLVABLE_LOSS,NO_ACCEPTED_NAME} 
+  #                                                                             24 
+  #                            {WORMS_ANNOTATION_RESOLVABLE_LOSS,NO_DEPTH,ON_LAND} 
+  #                                                                             46 
+  #                                    {WORMS_ANNOTATION_RESOLVABLE_LOSS,NO_DEPTH} 
+  #                                                                            231 
+  #                                     {WORMS_ANNOTATION_RESOLVABLE_LOSS,ON_LAND} 
+  #                                                                              2 
+  #                                             {WORMS_ANNOTATION_RESOLVABLE_LOSS} 
+  #                                                                           8175 
+  #                       {WORMS_ANNOTATION_RESOLVABLE,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                             23 
+  #                               {WORMS_ANNOTATION_RESOLVABLE,DEPTH_EXCEEDS_BATH} 
+  #                                                                            133 
+  #                                    {WORMS_ANNOTATION_RESOLVABLE,MARINE_UNSURE} 
+  #                                                                             73 
+  # {WORMS_ANNOTATION_RESOLVABLE,MIN_DEPTH_EXCEEDS_MAX,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                              1 
+  #         {WORMS_ANNOTATION_RESOLVABLE,MIN_DEPTH_EXCEEDS_MAX,DEPTH_EXCEEDS_BATH} 
+  #                                                                              4 
+  #                    {WORMS_ANNOTATION_RESOLVABLE,MIN_DEPTH_EXCEEDS_MAX,ON_LAND} 
+  #                                                                              1 
+  #                            {WORMS_ANNOTATION_RESOLVABLE,MIN_DEPTH_EXCEEDS_MAX} 
+  #                                                                             10 
+  #      {WORMS_ANNOTATION_RESOLVABLE,NO_ACCEPTED_NAME,DEPTH_EXCEEDS_BATH,ON_LAND} 
+  #                                                                              1 
+  #          {WORMS_ANNOTATION_RESOLVABLE,NO_ACCEPTED_NAME,MARINE_UNSURE,NO_DEPTH} 
+  #                                                                              3 
+  #                   {WORMS_ANNOTATION_RESOLVABLE,NO_ACCEPTED_NAME,MARINE_UNSURE} 
+  #                                                                            326 
+  #                         {WORMS_ANNOTATION_RESOLVABLE,NO_ACCEPTED_NAME,ON_LAND} 
+  #                                                                              1 
+  #                                 {WORMS_ANNOTATION_RESOLVABLE,NO_ACCEPTED_NAME} 
+  #                                                                             24 
+  #                                 {WORMS_ANNOTATION_RESOLVABLE,NO_DEPTH,ON_LAND} 
+  #                                                                            244 
+  #                                         {WORMS_ANNOTATION_RESOLVABLE,NO_DEPTH} 
+  #                                                                           1373 
+  #                                          {WORMS_ANNOTATION_RESOLVABLE,ON_LAND} 
+  #                                                                             13 
+  #                                                  {WORMS_ANNOTATION_RESOLVABLE} 
+  #                                                                           6873
+  write_csv(o, obis_csv)
+  rm(x, o)
+}
 
-system.time({
-  write_csv(y, obis_csv)
-})
-#   user  system elapsed                                                                                                                                             
-# 37.480  14.787  16.088
+if (!file.exists(obis_sum_csv)){
 
-y
-# before extra columns (class, AphiaID, date_mid, eventDate, depth, flags, dropped, absence):
-#   A tibble: 27,101,348 × 7
-#      id                decimalLongitude decimalLatitude scientificName phylum date_year
-#      <chr>                        <dbl>           <dbl> <chr>          <chr>      <int>
-#    1 ab2b3d73-0437-42…           -177.            0.811 Pycnochromis … Chord…      2006
-#    2 d0b85b79-3763-47…           -177.            0.811 Pycnochromis … Chord…      2006
-#    3 1705ac8c-4903-4b…           -177.            0.811 Pycnochromis … Chord…      2006
-#    4 7960289e-ddaf-47…            132.            2.92  Gymnothorax f… Chord…      2008
-#    5 8e621c79-a0fd-4a…             10.5          56.9   Dipolydora co… Annel…      2004
-#    6 f959831d-2189-49…             10.5          56.9   Dipolydora co… Annel…      2004
-#    7 b28e4b42-74fe-4a…           -177.            0.811 Pycnochromis … Chord…      2006
-#    8 008d1ba6-a337-4d…           -177.            0.811 Pycnochromis … Chord…      2006
-#    9 3e37c8c0-357a-49…           -177.            0.811 Pycnochromis … Chord…      2006
-#   10 28f7e5e6-9fe8-4e…           -177.            0.790 Monotaxis gra… Chord…      2006
-#   ℹ 27,101,338 more rows
-#   ℹ 1 more variable: individualCount <chr>
-# after:
-#   A tibble: 27,101,348 × 15
-#      id         phylum class scientificName AphiaID date_year date_mid eventDate decimalLongitude decimalLatitude depth individualCount flags
-#      <chr>      <chr>  <chr> <chr>            <int>     <int>  <int64> <chr>                <dbl>           <dbl> <dbl> <chr>           <chr>
-#    1 ab2b3d73-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   7               {}   
-#    2 d0b85b79-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   4               {}   
-#    3 1705ac8c-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   5               {}   
-#    4 7960289e-… Chord… Tele… Gymnothorax f…  217499      2008     1e12 2008-09-…            132.            2.92   NA   1               {NO_…
-#    5 8e621c79-… Annel… Poly… Dipolydora co…  131117      2004     1e12 2004-04-…             10.5          56.9    11.6 1.0             {}   
-#    6 f959831d-… Annel… Poly… Dipolydora co…  131117      2004     1e12 2004-04-…             10.5          56.9    11.9 1.0             {}   
-#    7 b28e4b42-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   20              {}   
-#    8 008d1ba6-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   34              {}   
-#    9 3e37c8c0-… Chord… Tele… Pycnochromis … 1595014      2006     1e12 2006-01-…           -177.            0.811  14   20              {}   
-#   10 28f7e5e6-… Chord… Tele… Monotaxis gra…  218584      2006     1e12 2006-01-…           -177.            0.790  14   1               {}   
-#   ℹ 27,101,338 more rows
-#   ℹ 2 more variables: dropped <lgl>, absence <lgl>
-
-system.time({
-  y_sum <- y |> 
+  o <- read_csv(obis_csv)
+  
+  o_sum <- o |> 
     # TODO: get Kingdom
-    group_by(phylum, class, scientificName, AphiaID) |>
+    group_by(taxonRank, phylum, class, scientificName, AphiaID) |>
     summarize(
-      year_min = min(date_year),
-      n_years  = n_distinct(date_year),
-      year_max = max(date_year),
+      date_min = min(date_mid),
+      date_max = max(date_mid),
       n_obs    = n(),
       n_indiv  = sum(as.numeric(individualCount), na.rm=T),
       .groups = "drop") |> 
-  arrange(desc(n_obs), phylum, class, scientificName, AphiaID)
-})
-#    user  system elapsed 
-#   3.792   0.960   5.366
+    mutate(
+      date_min = as.POSIXct(
+        date_min/1000, origin = "1970-01-01",tz = "GMT") |> as.Date(),
+      date_max = as.POSIXct(
+        date_max/1000, origin = "1970-01-01",tz = "GMT") |> as.Date()) |> 
+    arrange(taxonRank, phylum, class, desc(n_obs), scientificName, AphiaID)
+  o_sum
   
-table(is.na(y_sum$n_indiv))
-# before na.rm=T:
-#    FALSE  TRUE 
-#   88,999    74
-# after na.rm=T:
-#    FALSE 
-#   89,073
-#   89,216
-y_sum
-# A tibble: 89,073 × 7
-#    phylum     scientificName           year_min n_years year_max  n_obs     n_indiv
-#    <chr>      <chr>                       <int>   <int>    <int>  <int>       <dbl>
-#  1 Chordata   Fulmarus glacialis           1938      56     2021 892182    3851813 
-#  2 Chordata   Uria aalge                   1966      54     2021 625780    1603709 
-#  3 Chordata   Gadus morhua                 1782     102     2020 594939   35768843.
-#  4 Chordata   Merlangius merlangus         1921      65     2021 493998  740174517.
-#  5 Chordata   Melanogrammus aeglefinus     1913      72     2013 466065  678710462.
-#  6 Chordata   Morus bassanus               1965      56     2021 461615     954192 
-#  7 Chordata   Rissa tridactyla             1965      56     2021 428197    1885176 
-#  8 Chordata   Clupea harengus              1757     154     2019 396647 1938019751.
-#  9 Arthropoda Homarus americanus           1874      65     2014 384192    3485011.
-# 10 Chordata   Limanda limanda              1927      73     2021 345898  251012411.
-# ℹ 89,063 more rows
+  n_distinct(o_sum$phylum)
+  # 61
+  
+  n_distinct(o_sum$class)
+  # 174
+  
+  dim(o_sum)
+  # 89216     9
 
-n_distinct(y_sum$phylum)
-# 61
+  write_csv(o_sum, obis_sum_csv)
+  rm(x, o, o_sum)
+}
 
-n_distinct(y_sum$class)
-# 174
+o_sum <- read_csv(obis_sum_csv)
 
-write_csv(y_sum, obis_sum_csv)
+o_sum |> 
+  group_by(taxonRank, phylum) |>
+  summarize(
+    n = n()) |> 
+  datatable()
 ```
 
 
 ```{r}
-d_o <- read_csv(obis_sum_csv)
-dim(d_o)
-# 89216     9
-
-d_o_top <- d_o |> 
-  arrange(desc(n_obs), phylum, class) |>
+o_topsp <- o_sum |>
+  filter(taxonRank == "Species") |> 
+  arrange(phylum, class, desc(n_obs)) |>
   group_by(phylum, class) |>
   summarize(
     scientificName = first(scientificName), 
     AphiaID        = first(AphiaID), 
-    year_min       = first(year_min), 
-    n_years        = first(n_years), 
-    year_max       = first(year_max), 
+    date_min       = first(date_min), 
+    date_max       = first(date_max), 
     n_obs          = first(n_obs), 
     n_indiv        = first(n_indiv), 
     .groups = "drop")
-dim(d_o_top)
+dim(o_topsp)
 # 233   9
-write_csv(d_o_top, obis_top_csv)
+write_csv(o_topsp, obis_topsp_csv)
 
-DT::datatable(d_o_top)
+datatable(o_topsp)
 ```
 
 
