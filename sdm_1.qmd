@@ -1,0 +1,136 @@
+---
+title: "sdm_1"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+## Goals
+
+Create initial SDM using:
+
+-   **Observations**\
+    Species with most OBIS observations. Later try temporally subsetting to look for migratory patterns. And run for all.
+
+-   **Environment**\
+    Environmental data from `sdmpredictors`. Need to know whether demersal or pelagic. For now extract static climatic environmental predictors for model fitting and prediction. Later extract dynamic predictors synchronous in time for model fitting and predict with hind-/now-/fore-cast or climatic seasonal snapshot.
+
+-   **Model**\
+    Use Maxent.
+
+## References
+
+-   [Species distribution modeling --- R Spatial](https://rspatial.org/sdm/)
+    -   old but more: [Species distribution modeling --- R Spatial (raster)](https://rspatial.org/raster/sdm/)
+
+## Setup
+
+```{r}
+# libraries ----
+librarian::shelf(
+  arrow, dismo, dplyr, DT, glue, here, leafem, readr, robis, sdmpredictors, terra, sf, mapview,
+  quiet = T)
+options(readr.show_col_types = F)
+
+# variables -----
+dir_data <- "/Users/bbest/My Drive/projects/mbon-sdm/data"
+obis_prq <- glue("{dir_data}/raw/obis.org/obis_20230726.parquet")
+
+# functions -----
+get_sp_occ_obis_prq <- function(
+    aphia_id,
+    obis_prq  = "/Users/bbest/My Drive/projects/mbon-sdm/data/raw/obis.org/obis_20230726.parquet",
+    cols_keep = c(
+      "id",
+      "phylum",
+      "class",
+      "taxonRank",
+      "scientificName",
+      "AphiaID",
+      "date_mid",
+      "decimalLongitude",
+      "decimalLatitude",
+      "depth",
+      "individualCount",
+      "flags")) {
+  # get species occurrences from OBIS parquet file
+  
+  # TODO: add caching per species request/args
+  
+  # return only observations with valid coordinates and year
+  o <- open_dataset(obis_prq) |> 
+    filter(
+      !is.na(date_mid),
+      !is.na(decimalLongitude),
+      !is.na(decimalLatitude),
+      AphiaID == !!aphia_id) |> 
+    select(all_of(cols_keep)) |> 
+    collect() |>
+    mutate(
+      date_mid =as.POSIXct(
+        date_mid/1000, origin = "1970-01-01",tz = "GMT") |> 
+        as.Date()) |> 
+    st_as_sf(
+      coords = c("decimalLongitude", "decimalLatitude"), 
+      crs = 4326)
+}
+```
+
+## Species candidates
+
+```{r}
+# species with most observations
+sp_gull <- read_csv("data/obis_top-species.csv") |> 
+  arrange(desc(n_obs)) |>
+  slice(1)
+  
+# non-bird species with most observations
+sp_herring <- read_csv("data/obis_top-species.csv") |> 
+  filter(class != "Aves") |> 
+  arrange(desc(n_obs)) |>
+  slice(1)
+
+# species with ~100 observations (and most in Class)
+sp_jelly <- read_csv("data/obis_top-species.csv") |> 
+  filter(n_obs > 240) |> 
+  arrange(n_obs) |>
+  slice(1)
+```
+
+* `sp_gull`: [_Larus fuscus_ lesser black-backed gull | WoRMS](https://www.marinespecies.org/aphia.php?p=taxdetails&id=137142)\
+  n_obs: 2,162,536
+  
+* `sp_herring`: [_Clupea pallasii_ Pacific herring | WoRMS](https://www.marinespecies.org/aphia.php?p=taxdetails&id=151159)\
+  n_obs: 1,961,525
+
+* `sp_jelly`: [_Haliclystus auricula_ kaleidoscope jellyfish | WoRMS](https://www.marinespecies.org/aphia.php?p=taxdetails&id=135322)\
+  n_obs: 242
+  
+* `sp_rwhale`: [_Eubalaena glacialis_ North Atlantic right whale | WoRMS](https://www.marinespecies.org/aphia.php?p=taxdetails&id=159023)\
+  n_obs: 1,000
+  * [_Eubalaena glacialis_ | OBIS](https://obis.org/taxon/159023)
+    * [OBIS Mapper](https://mapper.obis.org/?taxonid=159023#)
+  * [_Eubalaena glacialis_ | AquaMaps](https://aquamaps.org/preMap2.php?cache=1&SpecID=ITS-Mam-180537)
+
+## N. Atlantic right whale
+
+N Atlantic right whale (_Eubalaena glacialis_)
+
+```{r}
+# right whale: surface, migratory, endangered
+sp_rwhale <- tibble(
+  AphiaID = 159023)
+
+# prep single species observations ---
+sp       <- sp_rwhale
+aphia_id <- sp$AphiaID
+
+# get observations
+o <- get_sp_occ_obis_prq(aphia_id)
+o
+
+# plot observations
+mapView(o)
+```
+
+
