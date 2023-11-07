@@ -27,8 +27,10 @@ Create initial SDM using:
 
 ```{r}
 # libraries ----
+options(java.parameters = "-Xmx8000m")
 librarian::shelf(
-  arrow, dismo, dplyr, DT, glue, here, leafem, readr, robis, sdmpredictors, terra, sf, mapview,
+  arrow, dismo, dplyr, DT, glue, here, leafem, 
+  leaflet.extras, readr, rJava, robis, sdmpredictors, terra, sf, mapview,
   quiet = T)
 options(readr.show_col_types = F)
 
@@ -112,7 +114,7 @@ sp_jelly <- read_csv("data/obis_top-species.csv") |>
     * [OBIS Mapper](https://mapper.obis.org/?taxonid=159023#)
   * [_Eubalaena glacialis_ | AquaMaps](https://aquamaps.org/preMap2.php?cache=1&SpecID=ITS-Mam-180537)
 
-## N. Atlantic right whale
+## obs: N. Atlantic right whale
 
 N Atlantic right whale (_Eubalaena glacialis_)
 
@@ -126,11 +128,314 @@ sp       <- sp_rwhale
 aphia_id <- sp$AphiaID
 
 # get observations
-o <- get_sp_occ_obis_prq(aphia_id)
-o
+obs <- get_sp_occ_obis_prq(aphia_id)
+obs
 
 # plot observations
-mapView(o)
+mapView(obs) %>%
+  .@map |> 
+  leaflet.extras::addFullscreenControl()
 ```
 
+## env: `sdmpredictors`
+
+```{r}
+librarian::shelf(
+  sdmpredictors, skimr, terra)
+
+# see ../aquamaps-downscaled/index.qmd for creation
+env_tif  <- here("../aquamaps-downscaled/data/bio-oracle.tif")
+
+stopifnot(file.exists(env_tif))
+
+env <- rast(env_tif)
+names(env) <- c(
+  "Temp",
+  "Salinity",
+  "PrimProd",
+  "IceCon")
+plot(env)
+
+obs_env <- extract(env, obs, cells=T) |> 
+  as_tibble() |> 
+  mutate(
+    presence = 1)
+
+bk_cells <- setdiff(cells(env), obs_env$cell)
+bk_env <- tibble(
+  presence = 0,
+  cell     = bk_cells) |> 
+  bind_cols(
+    values(env)[bk_cells,]) |> 
+  distinct(pick(all_of(names(env))), .keep_all = T)
+# rows: 6,181,644 -> 6,178,309 after distinct() and na.omit()
+
+set.seed(42) 
+
+d_env <- bind_rows(
+  obs_env,
+  bk_env |> 
+    slice(sample(1:nrow(bk_env), nrow(obs_env)) ) ) |> 
+  select(
+    presence, cell,
+    all_of(names(env))) |> 
+  na.omit()
+
+tail(d_env)
+
+# table(d_env$presence)
+#       0       1 
+# 6178319    7355
+#    0    1 
+# 7359 7355 
+
+d_env
+```
+
+
+## model: `predicts::maxent()`
+
+### example
+
+```{r}
+librarian::shelf(
+  predicts, 
+  quiet = T)
+#?predicts::MaxEnt
+# MaxEnt()
+# This is MaxEnt_model version 3.4.3
+
+# get predictor variables
+f <- system.file("ex/bio.tif", package="predicts")
+preds <- rast(f)
+plot(preds)
+
+# file with presence points
+occurence <- system.file("/ex/bradypus.csv", package="predicts")
+occ <- read.csv(occurence)[,-1]
+
+# witholding a 20% sample for testing 
+fold     <- folds(occ, k=5)
+occtest  <- occ[fold == 1, ]
+occtrain <- occ[fold != 1, ]
+
+# fit model
+me <- MaxEnt(preds, occtrain)
+
+# see the MaxEnt results in a browser:
+me
+
+# plot showing importance of each variable
+plot(me, main="me: Variable contribution")
+
+# TODO: try categorical, not in preds
+# # use "args"
+# me2 <- MaxEnt(preds, occtrain, factors='biome', args=c("-J", "-P"))
+# 
+# # plot showing importance of each variable
+# plot(me2, main="me2: Variable contribution")
+
+# response curves
+library(ggplot2)
+
+d <- tibble()
+for (v in names(preds)){  # v = names(preds)[2]
+  pr <- partialResponse(me, var=v)
+  d <- bind_rows(
+    d, 
+    pr |> 
+      rename(value = 1) |> 
+      mutate(
+        var = v))
+  # plot(pr, type="l", las=1)
+  # TODO: lattice ggplot
+}
+g <- d |> 
+  ggplot(aes(x = value, y = p)) +
+  geom_line() +
+  facet_wrap(
+    ~var, scales = "free") +
+  theme_bw()
+g
+plotly::ggplotly(g)
+# TODO: convert to function
+
+# pr2 <- partialResponse2(me, var="bio1", var2 = "bio5")
+# plot(pr2, type="l", las=1)
+
+# predict to entire dataset
+r <- predict(me, preds) 
+plot(r)
+points(occ)
+
+# with some options:
+r <- predict(me, preds, args=c("outputformat=raw"))
+plot(r)
+points(occ)
+```
+
+
+
+
+### rwhale
+
+```{r}
+# get predictor variables
+preds <- env
+plot(preds)
+
+# witholding a 20% sample for testing 
+occ <- obs |> 
+  mutate(
+    lon = st_coordinates(geometry)[,1],
+    lat = st_coordinates(geometry)[,2]) |>
+  st_drop_geometry() |> 
+  select(lon, lat)
+fold     <- folds(occ, k=5)
+occtest  <- occ[fold == 1, ]
+occtrain <- occ[fold != 1, ]
+
+# fit model
+system.time({
+  me <- MaxEnt(preds, occtrain)
+})
+# Warning message:
+# In .local(x, p, ...) :
+#   3 (0.19%) of the presence points have NA predictor values
+
+
+# see the MaxEnt results in a browser:
+me
+
+# plot showing importance of each variable
+plot(me, main="me: Variable contribution")
+
+# TODO: try categorical, not in preds
+# # use "args"
+# me2 <- MaxEnt(preds, occtrain, factors='biome', args=c("-J", "-P"))
+# 
+# # plot showing importance of each variable
+# plot(me2, main="me2: Variable contribution")
+
+# response curves
+library(ggplot2)
+
+system.time({
+d <- tibble()
+for (v in names(preds)){  # v = names(preds)[2]
+  pr <- partialResponse(me, var=v)
+  d <- bind_rows(
+    d, 
+    pr |> 
+      rename(value = 1) |> 
+      mutate(
+        var = v))
+  # plot(pr, type="l", las=1)
+  # TODO: lattice ggplot
+}
+g <- d |> 
+  ggplot(aes(x = value, y = p)) +
+  geom_line() +
+  facet_wrap(
+    ~var, scales = "free") +
+  theme_bw()
+g
+})
+# plotly::ggplotly(g)
+# TODO: convert to function
+
+# pr2 <- partialResponse2(me, var="bio1", var2 = "bio5")
+# plot(pr2, type="l", las=1)
+
+# predict to entire dataset
+system.time({
+  r <- predict(me, preds)
+})
+plot(r)
+points(occ)
+
+# with some options:
+# system.time({
+#   r <- predict(me, preds, args=c("outputformat=raw"))
+# })
+# plot(r)
+# points(occ)
+```
+
+
+
+
+## mdl: maxnet
+
+```{r}
+#| eval: false
+
+librarian::shelf(
+  maxnet, 
+  quiet = T)
+
+system.time({
+  m <- maxnet(
+    p    = d_env |> pull(presence), 
+    data = d_env |> select(-presence, -cell) |> as.data.frame())
+}) # present/absent:7,359/7,355: 50.149s
+
+plot(m, type="cloglog")
+
+predict(m, new)
+
+env |> terra::add()
+
+env
+# 2160 * 4320 = 9331200, 5
+d_env <- values(env, dataframe = T, na.rm=F)
+# d_env <- d_env |> 
+#   select(-pred)
+dim(d_env) # 9,331,200       4
+
+ncell(env) # 9,331,200
+
+d_env_notna <- na.omit(d_env)
+dim(d_env_notna) # 6,183,457
+
+x <- d_env_notna
+
+intersect(attr(x, "na.action"), attr(x, "row.names"))
+class(attr(x, "row.names"))
+
+
+p <- predict(m, d_env_notna, clamp = T, type = "logistic") #, clamp=T, type=c("link","exponential","cloglog","logistic"), ...)
+length(p[,1]) # 6,183,457
+
+p <- predict(m, raster::stack(env), clamp = F, type = "logistic") #, clamp=T,
+
+env$pred <- NA
+env$pred[attr(x, "row.names")] <- p[,1]
+
+plot(env$pred)
+setValues(env, p)
+
+# why are these different lengths?
+as.numeric(p)
+ncell(env)
+
+length(cells(env))
+length(as.numeric(p))
+
+plot(env$pred)
+mod <- maxnet(p, data, maxnet.formula(p, data, classes="lq"))
+plot(mod, "tmp6190_ann")
+```
+
+
+## vs Kernel Density Estimates (KDE)
+
+* [Kernel density estimates for tidy and geospatial data in the eks package](https://cran.r-project.org/web/packages/eks/vignettes/tidysf_kde.html)
+
+
+```{r}
+librarian::shelf(
+  eks, 
+  quiet = T)
+```
 
