@@ -199,7 +199,7 @@ d_env
 
 ```{r}
 librarian::shelf(
-  predicts, 
+  fs, ggplot2, leaflet, predicts, 
   quiet = T)
 #?predicts::MaxEnt
 # MaxEnt()
@@ -223,8 +223,13 @@ occtrain <- occ[fold != 1, ]
 me <- MaxEnt(preds, occtrain)
 
 # see the MaxEnt results in a browser:
-me
+# me
+dir_copy(attr(me, "path"), here("me_bradypus"))
+```
 
+Results: [maxent.html](./data/me_bradypus/maxent.html)
+
+```{r}
 # plot showing importance of each variable
 plot(me, main="me: Variable contribution")
 
@@ -236,7 +241,6 @@ plot(me, main="me: Variable contribution")
 # plot(me2, main="me2: Variable contribution")
 
 # response curves
-library(ggplot2)
 
 d <- tibble()
 for (v in names(preds)){  # v = names(preds)[2]
@@ -272,10 +276,35 @@ points(occ)
 r <- predict(me, preds, args=c("outputformat=raw"))
 plot(r)
 points(occ)
+
+
+#testing ----
+
+# background sample
+bg <- backgroundSample(preds, 1000)
+
+#simplest way to use 'evaluate'
+e1 <- pa_evaluate(me, p=occtest, a=bg, x=preds)
+
+# alternative 1
+# extract values
+pvtest <- data.frame(extract(preds, occtest))
+avtest <- data.frame(extract(preds, bg))
+
+e2 <- pa_evaluate(me, p=pvtest, a=avtest)
+
+# alternative 2 
+# predict to testing points 
+testp <- predict(me, pvtest) 
+head(testp)
+testa <- predict(me, avtest) 
+
+e3 <- pa_evaluate(p=testp, a=testa)
+e3
+threshold(e3)
+
+plot(e3, 'ROC')
 ```
-
-
-
 
 ### rwhale
 
@@ -305,8 +334,14 @@ system.time({
 
 
 # see the MaxEnt results in a browser:
-me
+# see the MaxEnt results in a browser:
+# me
+dir_copy(attr(me, "path"), here("me_rwhale"))
+```
 
+Results: [maxent.html](./data/me_rwhale/maxent.html)
+
+```{r}
 # plot showing importance of each variable
 plot(me, main="me: Variable contribution")
 
@@ -318,8 +353,6 @@ plot(me, main="me: Variable contribution")
 # plot(me2, main="me2: Variable contribution")
 
 # response curves
-library(ggplot2)
-
 system.time({
 d <- tibble()
 for (v in names(preds)){  # v = names(preds)[2]
@@ -360,9 +393,17 @@ points(occ)
 # })
 # plot(r)
 # points(occ)
+
+plet(r, tiles = leaflet::providers$Esri.NatGeoWorldMap) |> 
+  addCircleMarkers(
+    data = occ, 
+    lng = ~lon, 
+    lat = ~lat,
+    opacity     = 0.3,
+    fillOpacity = 0.1,
+    radius = 2,
+    weight = 1)
 ```
-
-
 
 
 ## mdl: maxnet

@@ -1,0 +1,89 @@
+---
+title: "SDM Process"
+---
+
+## test
+
+<!-- 
+quarto install extension quarto-ext/fontawesome
+-->
+
+Initialize with any icon {{< fa thumbs-up >}}
+
+
+```{mermaid}
+flowchart LR
+    D(fa:fa-camera-retro phone)-->C[fa:fa-house house]
+```
+
+## file include
+
+```{mermaid}
+%%| label: fig-linux-kernel
+%%| fig-cap: "A diagram of the Linux kernel."
+%%| file: data/test_seq.mmd
+```
+
+## Quarto
+
+- [Google Cloud Icons](https://cloud.google.com/icons)
+
+```{mermaid}
+%%| label: fig-mermaid
+%%| fig-width: 6
+%%| fig-cap: |
+%%|   init diagram.
+flowchart LR
+
+of[fa:fa-book] 
+D[Diagram With Insertion<br>Of Computed Counts]
+C[Consort]
+M[Mermaid]
+dd[Data about Data]
+mvs[Missing Value Snapshot]
+dc[Data Characteristics]
+dcs["discrete vs. continuous<br>ties<br>information content<br>symmetry<br>rare values<br>common values"]
+
+of --> D
+D --> C
+D --> M
+dd --> mvs
+dd --> dc
+dc --> dcs
+
+click M "https://mermaid.live/edit" _blank
+```
+
+## Mermaid
+
+Example of a Mermaid diagram
+
+```{mermaid}
+%%| label: fig-mermaid
+%%| fig-width: 6
+%%| fig-cap: |
+%%|   How Quarto orchestrates rendering of documents: start with 
+%%|   a qmd file, use the Knitr or Jupyter engine to perform the 
+%%|   computations and convert it to an md file, then use Pandoc 
+%%|   to convert to various file formats including HTML, PDF, 
+%%|   and Word.
+flowchart LR
+  A[qmd] --> B(Knitr)
+  A[qmd] --> C(Jupyter)
+  B(Knitr) --> D[md]
+  C(Jupyter) --> D[md]
+  D[md] --> E(pandoc)
+  E(pandoc) --> F(HTML)
+  E(pandoc) --> G(PDF)
+  E(pandoc) --> H(Word)
+  E(pandoc) --> I{and more}
+```
+
+You can add options to executable code like this 
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).

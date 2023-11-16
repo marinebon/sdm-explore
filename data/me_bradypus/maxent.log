@@ -1,0 +1,36 @@
+Tue Nov 07 14:57:41 EST 2023
+MaxEnt version 3.4.3
+Reading file absence
+readGrid: max memory 8388608000, total allocated 406847488, free 396135928, used 10711560, increment 10711560
+Reading samples from presence
+Read samples: max memory 8388608000, total allocated 406847488, free 359172952, used 47674536, increment 36962976
+Adding samples to background in feature space
+Command line used:  autorun -e /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/absence -o /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236 -s /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/presence -z
+Command line to repeat: java density.MaxEnt nowarnings noprefixes outputdirectory=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236 samplesfile=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/presence environmentallayers=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/absence autorun novisible
+Species: species
+Layers: bio1 bio12 bio16 bio17 bio5 bio6 bio7 bio8 bio9
+Layertypes: Continuous Continuous Continuous Continuous Continuous Continuous Continuous Continuous Continuous
+outputdirectory: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236
+samplesfile: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/presence
+environmentallayers: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/1565356236/absence
+autorun: true
+visible: false
+
+getSamples: max memory 8388608000, total allocated 406847488, free 358522880, used 48324608, increment 650072
+Making features
+makeFeatures: max memory 8388608000, total allocated 406847488, free 354089408, used 52758080, increment 4433472
+species: 
+Regularization values: linear/quadratic/product: 0.124, categorical: 0.250, threshold: 1.260, hinge: 0.500
+74 samples
+Density: max memory 8388608000, total allocated 406847488, free 344349832, used 62497656, increment 9739576
+linearPredictor: max memory 8388608000, total allocated 406847488, free 344271616, used 62575872, increment 78216
+FeaturedSpace: max memory 8388608000, total allocated 406847488, free 344271616, used 62575872, increment 0
+Sequential: max memory 8388608000, total allocated 406847488, free 344271616, used 62575872, increment 0
+Initial loss: 9.187583384853566
+500: time = 0.802000 loss = 7.816209
+Time since start: 1.001
+Resulting gain: 1.3713741523031855
+Projecting...
+Writing file /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T/Rtmp8VzstB/maxent/1565356236/species.csv
+Time since start: 2.173
+Ending

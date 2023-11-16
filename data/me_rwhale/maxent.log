@@ -1,0 +1,35 @@
+Tue Nov 07 14:59:25 EST 2023
+MaxEnt version 3.4.3
+Reading file absence
+readGrid: max memory 8388608000, total allocated 197132288, free 46623488, used 150508800, increment 87932928
+Reading samples from presence
+Read samples: max memory 8388608000, total allocated 197132288, free 135962376, used 61169912, increment -89338888
+Adding samples to background in feature space
+Command line used:  autorun -e /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/absence -o /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471 -s /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/presence -z
+Command line to repeat: java density.MaxEnt nowarnings noprefixes outputdirectory=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471 samplesfile=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/presence environmentallayers=/var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/absence autorun novisible
+Species: species
+Layers: IceCon PrimProd Salinity Temp
+Layertypes: Continuous Continuous Continuous Continuous
+outputdirectory: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471
+samplesfile: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/presence
+environmentallayers: /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T//Rtmp8VzstB/maxent/10016796471/absence
+autorun: true
+visible: false
+
+getSamples: max memory 8388608000, total allocated 197132288, free 125474568, used 71657720, increment 10487808
+Making features
+makeFeatures: max memory 8388608000, total allocated 197132288, free 123379464, used 73752824, increment 2095104
+species: 
+Regularization values: linear/quadratic/product: 0.050, categorical: 0.250, threshold: 1.000, hinge: 0.500
+1598 samples
+Density: max memory 8388608000, total allocated 197132288, free 108697352, used 88434936, increment 14682112
+linearPredictor: max memory 8388608000, total allocated 197132288, free 108697352, used 88434936, increment 0
+FeaturedSpace: max memory 8388608000, total allocated 197132288, free 108697352, used 88434936, increment 0
+Sequential: max memory 8388608000, total allocated 197132288, free 108697352, used 88434936, increment 0
+Initial loss: 9.358415490041546
+Time since start: 2.318
+500: time = 2.175000 loss = 7.807203
+Resulting gain: 1.5512127947709073
+Projecting...
+Writing file /var/folders/sl/7s3zmk1129jcrgsn1c4hcs2r0000gn/T/Rtmp8VzstB/maxent/10016796471/species.csv
+Ending

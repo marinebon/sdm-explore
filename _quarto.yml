@@ -1,0 +1,15 @@
+project:
+  output-dir: _output
+
+bibliography: mbon-sdm.bib
+
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    embed-resources: false
+    theme: vapor
+
+search: false
