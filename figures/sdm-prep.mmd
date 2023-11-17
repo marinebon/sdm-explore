@@ -1,0 +1,30 @@
+
+flowchart LR
+
+  P(presence):::in
+
+  A(absence):::in
+
+  pts(obs):::out
+
+  X[/extract/]:::fxn
+
+  env(env):::in
+
+  tbl[[tbl]]:::out
+
+  P   --> pts
+
+  A   --> pts
+
+  pts --> X
+
+  env --> X
+
+  X   --> tbl
+
+  classDef in  fill:lightblue
+
+  classDef out fill:lightgreen
+
+  classDef fxn fill:yellow

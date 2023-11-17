@@ -2,88 +2,84 @@
 title: "SDM Process"
 ---
 
-## test
-
-<!-- 
-quarto install extension quarto-ext/fontawesome
--->
-
-Initialize with any icon {{< fa thumbs-up >}}
-
+## Data Prep
 
 ```{mermaid}
+%%| label: fig-sdm-prep
+%%| fig-cap: "Diagram of SDM data preparation."
 flowchart LR
-    D(fa:fa-camera-retro phone)-->C[fa:fa-house house]
+
+  P(presence):::in
+  A(absence):::in
+  pts(obs):::out
+  X[/extract/]:::fxn
+  env(env):::in
+  tbl[[tbl]]:::out
+  
+  P   --> pts
+  A   --> pts
+  pts --> X
+  env --> X
+  X   --> tbl
+  
+  classDef in  fill:lightblue
+  classDef out fill:lightgreen
+  classDef fxn fill:yellow
 ```
 
-## file include
+## definitions
+
+-   **obs\
+    **observations: occurrences from OBIS; masked by FAO regions defined by AquaMaps [@aquamapsdata]
+    -   **presence**\
+        OBIS: species occurrence
+    -   **absence**\
+        OBIS not-species, but same family
+-   **env\
+    **environment
+-   **tbl**\
+    table of observations (presence and absence) with environmental values
+
+## Model
 
 ```{mermaid}
 %%| label: fig-linux-kernel
-%%| fig-cap: "A diagram of the Linux kernel."
-%%| file: data/test_seq.mmd
-```
+%%| fig-cap: "Diagram of SDM Modeling processes."
 
-## Quarto
-
-- [Google Cloud Icons](https://cloud.google.com/icons)
-
-```{mermaid}
-%%| label: fig-mermaid
-%%| fig-width: 6
-%%| fig-cap: |
-%%|   init diagram.
 flowchart LR
 
-of[fa:fa-book] 
-D[Diagram With Insertion<br>Of Computed Counts]
-C[Consort]
-M[Mermaid]
-dd[Data about Data]
-mvs[Missing Value Snapshot]
-dc[Data Characteristics]
-dcs["discrete vs. continuous<br>ties<br>information content<br>symmetry<br>rare values<br>common values"]
-
-of --> D
-D --> C
-D --> M
-dd --> mvs
-dd --> dc
-dc --> dcs
-
-click M "https://mermaid.live/edit" _blank
+  tbl[[tbl]]:::in
+  S[/split/]:::fxn
+  t1[[train]]:::out
+  t2[[test]]:::out
+  F[/fit/]:::fxn
+  M{{model}}:::out
+  E[/evaluate/]:::fxn
+  C[/calibrate/]:::fxn
+  P[/predict/]:::fxn
+  N[["new data"]]:::in
+  prd(prediction):::out
+  prf(performance):::out
+  
+  tbl --> S
+  S   --> t1
+  S   --> t2
+  t1  --> F
+  F   --> M
+  t2  --> E
+  M   --> C
+  C   --> F
+  M   --> P
+  N   --> P
+  M   --> E
+  P   --> prd
+  E   --> prf
+  
+  classDef in  fill:lightblue
+  classDef out fill:lightgreen
+  classDef fxn fill:yellow
+  
+%% source: https://bbest.github.io/eds232-ml/lab1d_sdm-evaluate.html
 ```
 
-## Mermaid
-
-Example of a Mermaid diagram
-
-```{mermaid}
-%%| label: fig-mermaid
-%%| fig-width: 6
-%%| fig-cap: |
-%%|   How Quarto orchestrates rendering of documents: start with 
-%%|   a qmd file, use the Knitr or Jupyter engine to perform the 
-%%|   computations and convert it to an md file, then use Pandoc 
-%%|   to convert to various file formats including HTML, PDF, 
-%%|   and Word.
-flowchart LR
-  A[qmd] --> B(Knitr)
-  A[qmd] --> C(Jupyter)
-  B(Knitr) --> D[md]
-  C(Jupyter) --> D[md]
-  D[md] --> E(pandoc)
-  E(pandoc) --> F(HTML)
-  E(pandoc) --> G(PDF)
-  E(pandoc) --> H(Word)
-  E(pandoc) --> I{and more}
-```
-
-You can add options to executable code like this 
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
+\

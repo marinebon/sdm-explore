@@ -1,0 +1,32 @@
+flowchart LR
+
+  tbl[[tbl]]:::in
+  S[/split/]:::fxn
+  t1[[train]]:::out
+  t2[[test]]:::out
+  F[/fit/]:::fxn
+  M{{model}}:::out
+  E[/evaluate/]:::fxn
+  C[/calibrate/]:::fxn
+  P[/predict/]:::fxn
+  N[["new data"]]:::in
+  prd(prediction):::out
+  prf(performance):::out
+
+  tbl --> S
+  S   --> t1
+  S   --> t2
+  t1  --> F
+  F   --> M
+  t2  --> E
+  M   --> C
+  C   --> F
+  M   --> P
+  N   --> P
+  M   --> E
+  P   --> prd
+  E   --> prf
+
+  classDef in  fill:lightblue
+  classDef out fill:lightgreen
+  classDef fxn fill:yellow

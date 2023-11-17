@@ -10,6 +10,11 @@ format:
     code-fold: true
     code-tools: true
     embed-resources: false
-    theme: vapor
+    mermaid:
+      theme: neutral
+    theme:
+      dark: darkly
+      light: flatly
+
 
 search: false
