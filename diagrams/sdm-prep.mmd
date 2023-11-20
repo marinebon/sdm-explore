@@ -1,30 +1,32 @@
 
 flowchart LR
 
+  %% nodes
   P(presence):::in
-
-  A(absence):::in
-
+  A("pseudo-absence"):::in
   pts(obs):::out
-
   X[/extract/]:::fxn
-
   env(env):::in
+  D[[data]]:::out
 
-  tbl[[tbl]]:::out
-
+  %% edges
   P   --> pts
-
   A   --> pts
-
   pts --> X
-
   env --> X
+  X   --> D
 
-  X   --> tbl
+  %% Legend
+  in(input):::in
+  fxn[/process/]:::fxn
+  out(output):::out
+  subgraph Legend
+    in
+    fxn
+    out
+  end
 
+  %% styles
   classDef in  fill:lightblue
-
   classDef out fill:lightgreen
-
   classDef fxn fill:yellow

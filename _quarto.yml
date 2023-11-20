@@ -13,8 +13,7 @@ format:
     mermaid:
       theme: neutral
     theme:
-      dark: darkly
       light: flatly
-
+      dark: darkly
 
 search: false
